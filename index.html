@@ -89,6 +89,12 @@
     .message.mine .timestamp {
       color: #e0e0e0;
     }
+    .message.admin {
+      background: #ffe082;
+      border: 1px solid #e6b800;
+      align-self: flex-start;
+      border-bottom-left-radius: 0;
+    }
     #input-area {
       display: flex;
       padding: 10px;
@@ -169,6 +175,8 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    const ADMIN_UID = "3iwGbpWIVoOAgO3g8FKg6sOSQ8T2"; // UID admin kamu
+
     const loginBtn = document.getElementById("login-btn");
     const logoutBtn = document.getElementById("logout-btn");
     const userName = document.getElementById("user-name");
@@ -232,21 +240,30 @@
         snapshot.forEach((doc) => {
           const msg = doc.data();
           const div = document.createElement("div");
-          div.classList.add("message");
-          div.classList.add(msg.uid === currentUser.uid ? "mine" : "other");
 
-          let timeText = "";
-          if (msg.timestamp?.toDate) {
-            const date = msg.timestamp.toDate();
-            const options = { hour: '2-digit', minute: '2-digit' };
-            timeText = date.toLocaleTimeString([], options) + " | " + date.toLocaleDateString();
+          if (msg.uid === ADMIN_UID) {
+            div.classList.add("message", "admin");
+            div.innerHTML = `<strong>${msg.name} <span style="color:red;">🛡 Admin</span></strong>${msg.text}<span class="timestamp">${formatDate(msg.timestamp)}</span>`;
+          } else if (currentUser && msg.uid === currentUser.uid) {
+            div.classList.add("message", "mine");
+            div.innerHTML = `<strong>${msg.name}</strong>${msg.text}<span class="timestamp">${formatDate(msg.timestamp)}</span>`;
+          } else {
+            div.classList.add("message", "other");
+            div.innerHTML = `<strong>${msg.name}</strong>${msg.text}<span class="timestamp">${formatDate(msg.timestamp)}</span>`;
           }
 
-          div.innerHTML = `<strong>${msg.name}</strong>${msg.text}<span class="timestamp">${timeText}</span>`;
           messagesDiv.appendChild(div);
         });
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
       });
+    }
+
+    // Format tanggal
+    function formatDate(timestamp) {
+      if (!timestamp?.toDate) return "";
+      const date = timestamp.toDate();
+      const options = { hour: '2-digit', minute: '2-digit' };
+      return date.toLocaleTimeString([], options) + " | " + date.toLocaleDateString();
     }
   </script>
 </body>
