@@ -8,7 +8,7 @@
     * { box-sizing: border-box; }
     body {
       font-family: "Poppins", sans-serif;
-      background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+      background: #ece5dd;
       margin: 0;
       height: 100vh;
       display: flex;
@@ -33,7 +33,7 @@
     }
 
     #header {
-      background: #4a90e2;
+      background: #075e54;
       color: #fff;
       padding: 12px;
       display: flex;
@@ -50,38 +50,65 @@
 
     #messages {
       flex: 1;
-      padding: 12px 0;
+      padding: 12px;
       overflow-y: auto;
-      background: #f5f7fa;
+      background: #ece5dd;
       display: flex;
       flex-direction: column;
     }
 
     .message-row {
       display: flex;
-      margin-bottom: 12px;
-      padding: 0 10px;
+      margin-bottom: 10px;
+      padding: 0 6px;
     }
-    .message {
-      padding: 10px 14px;
-      border-radius: 16px;
+
+    /* Bubble sendiri (kanan) */
+    .mine-row { justify-content: flex-end; }
+    .mine {
+      background: #dcf8c6;
+      border-radius: 8px 8px 0 8px;
+      padding: 8px 12px;
+      max-width: 70%;
       font-size: 14px;
       line-height: 1.4;
-      max-width: 70%;
       word-wrap: break-word;
+      position: relative;
     }
+
+    /* Bubble orang lain (kiri) */
+    .other-row { justify-content: flex-start; }
+    .other {
+      background: #fff;
+      border-radius: 8px 8px 8px 0;
+      padding: 8px 12px;
+      max-width: 70%;
+      font-size: 14px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      border: 1px solid #ddd;
+      position: relative;
+    }
+
+    /* Bubble admin */
+    .admin-row { justify-content: flex-start; }
+    .admin {
+      background: #ffeeba;
+      border-radius: 8px 8px 8px 0;
+      padding: 8px 12px;
+      max-width: 70%;
+      font-size: 14px;
+      border: 1px solid #e6b800;
+      position: relative;
+    }
+
     .message strong {
-      display: flex;
-      align-items: center;
+      display: block;
       font-size: 12px;
       margin-bottom: 4px;
-      gap: 6px;
+      color: #555;
     }
-    .message strong img {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-    }
+
     .timestamp {
       display: flex;
       justify-content: flex-end;
@@ -89,40 +116,19 @@
       font-size: 11px;
       margin-top: 4px;
       gap: 4px;
-      opacity: 0.7;
+      color: #666;
     }
 
-    /* Bubble user sendiri (kanan) */
-    .mine-row { justify-content: flex-end; }
-    .mine {
-      background: #4a90e2;
-      color: #fff;
-      border-bottom-right-radius: 0;
-      text-align: left;
-    }
-    .mine .timestamp { color: #e0e0e0; }
-
-    /* Bubble admin (kiri) */
-    .admin-row { justify-content: flex-start; }
-    .admin {
-      background: #ffe082;
-      border: 1px solid #e6b800;
-      border-bottom-left-radius: 0;
-    }
-
-    /* Bubble user lain (kiri) */
-    .other-row { justify-content: flex-start; }
-    .other {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-bottom-left-radius: 0;
+    .check-blue {
+      color: #34B7F1;
+      font-size: 13px;
     }
 
     #input-area {
       display: flex;
       padding: 8px;
       border-top: 1px solid #ddd;
-      background: #fff;
+      background: #f0f0f0;
       align-items: center;
       gap: 8px;
     }
@@ -136,18 +142,18 @@
     #send-btn, #upload-btn {
       padding: 10px;
       border: none;
-      background: #4a90e2;
+      background: #075e54;
       color: #fff;
       border-radius: 50%;
       cursor: pointer;
       flex-shrink: 0;
     }
-    #send-btn:hover, #upload-btn:hover { background: #357ABD; }
+    #send-btn:hover, #upload-btn:hover { background: #0a786d; }
 
     #login-btn, #logout-btn {
       background: #fff;
       border: none;
-      color: #4a90e2;
+      color: #075e54;
       font-weight: bold;
       border-radius: 20px;
       padding: 5px 10px;
@@ -331,22 +337,18 @@
           const row = document.createElement("div");
           const div = document.createElement("div");
 
-          // cek admin / mine / other
           if (ADMIN_UIDS.includes(msg.uid)) {
             row.className = "message-row admin-row";
             div.className = "message admin";
-            div.innerHTML = `<strong><img src="${msg.photo}">${msg.name} 🛡 Admin</strong>`;
+            div.innerHTML = `<strong>${msg.name} 🛡 Admin</strong>`;
           } else if (currentUser && msg.uid === currentUser.uid) {
             row.className = "message-row mine-row";
             div.className = "message mine";
-            div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
           } else {
             row.className = "message-row other-row";
             div.className = "message other";
-            div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
           }
 
-          // isi pesan
           if (msg.type === "image") {
             div.innerHTML += `<img class="chat-img" src="${msg.url}">`;
           } else if (msg.type === "video") {
@@ -355,12 +357,11 @@
             div.innerHTML += msg.text;
           }
 
-          // timestamp + centang biru jika pesan sendiri
           let extra = "";
           if (currentUser && msg.uid === currentUser.uid) {
-            extra = "✔✔"; // tanda centang biru
+            extra = `<span class="check-blue">✔✔</span>`;
           }
-          div.innerHTML += `<span class="timestamp">${formatDate(msg.timestamp)} ${extra}</span>`;
+          div.innerHTML += `<div class="timestamp">${formatDate(msg.timestamp)} ${extra}</div>`;
 
           row.appendChild(div);
           messagesDiv.appendChild(row);
