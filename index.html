@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Service VIP Agency</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 500px;
+      background: #222;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    }
+
+    .chat-header {
+      background: #FFD700;
+      color: #111;
+      text-align: center;
+      padding: 15px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .message {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 70%;
+      clear: both;
+    }
+
+    .admin {
+      background: #ff9800;
+      color: #111;
+      float: left;
+    }
+
+    .user {
+      background: #4caf50;
+      color: #fff;
+      float: right;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      background: #333;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    .chat-input button {
+      margin-left: 10px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      background: #FFD700;
+      color: #111;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .chat-input button:hover {
+      background: #e6c200;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">💬 Customer Service VIP AgencyP</div>
+    <div class="messages" id="messages"></div>
+    <div class="chat-input">
+      <input type="text" id="messageInput" placeholder="Ketik pesan..." />
+      <button onclick="sendMessage()">Kirim</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script>
+    // Config Firebase kamu
+    const firebaseConfig = {
+      apiKey: "AIzaSyAqDYsJJKz6fdzOj7paVzILo8B54hX6KNo",
+      authDomain: "cs-chat-project.firebaseapp.com",
+      projectId: "cs-chat-project",
+      storageBucket: "cs-chat-project.firebasestorage.app",
+      messagingSenderId: "884357955337",
+      appId: "1:884357955337:web:9366ac70528663eff89dd8",
+      databaseURL: "https://cs-chat-project-default-rtdb.firebaseio.com/"
+    };
+
+    // Init Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Generate ID User random (kalau admin bisa manual set)
+    const urlParams = new URLSearchParams(window.location.search);
+    const role = urlParams.get("role") === "admin" ? "admin" : "user";
+
+    const messagesRef = db.ref("messages");
+
+    // Kirim pesan
+    function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const text = input.value.trim();
+      if (text) {
+        messagesRef.push({
+          sender: role,
+          text: text,
+          timestamp: Date.now()
+        });
+        input.value = "";
+      }
+    }
+
+    // Tampilkan pesan realtime
+    messagesRef.on("child_added", snapshot => {
+      const msg = snapshot.val();
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message");
+      msgDiv.classList.add(msg.sender === "admin" ? "admin" : "user");
+      msgDiv.textContent = msg.text;
+      document.getElementById("messages").appendChild(msgDiv);
+      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    });
+  </script>
+</body>
+</html>
