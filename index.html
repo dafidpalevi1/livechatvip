@@ -3,158 +3,251 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Service VIP Agency</title>
+  <title>Live Chat Firebase</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+      margin: 0;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      margin: 0;
+      height: 100vh;
     }
-
-    .chat-container {
+    #chat-container {
       width: 100%;
-      max-width: 500px;
-      background: #222;
-      border-radius: 10px;
+      max-width: 420px;
+      height: 90vh;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
       display: flex;
       flex-direction: column;
-      height: 90vh;
       overflow: hidden;
-      box-shadow: 0 0 15px rgba(0,0,0,0.5);
     }
-
-    .chat-header {
-      background: #FFD700;
-      color: #111;
-      text-align: center;
+    #header {
+      background: #4a90e2;
+      color: #fff;
       padding: 15px;
-      font-weight: bold;
-      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-
-    .messages {
+    #header img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    #header span {
+      font-weight: bold;
+    }
+    #messages {
       flex: 1;
       padding: 15px;
       overflow-y: auto;
+      background: #f5f7fa;
+      display: flex;
+      flex-direction: column;
     }
-
     .message {
-      margin: 8px 0;
-      padding: 10px;
-      border-radius: 8px;
-      max-width: 70%;
-      clear: both;
+      margin-bottom: 12px;
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      line-height: 1.4;
+      font-size: 14px;
+      position: relative;
+      display: inline-block;
+      word-wrap: break-word;
     }
-
-    .admin {
-      background: #ff9800;
-      color: #111;
-      float: left;
+    .message strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: #555;
     }
-
-    .user {
-      background: #4caf50;
+    .message .timestamp {
+      display: block;
+      font-size: 11px;
+      margin-top: 4px;
+      color: #888;
+      text-align: right;
+    }
+    .message.other {
+      background: #fff;
+      border: 1px solid #ddd;
+      align-self: flex-start;
+      border-bottom-left-radius: 0;
+    }
+    .message.mine {
+      background: #4a90e2;
       color: #fff;
-      float: right;
+      align-self: flex-end;
+      border-bottom-right-radius: 0;
     }
-
-    .chat-input {
+    .message.mine .timestamp {
+      color: #e0e0e0;
+    }
+    #input-area {
       display: flex;
       padding: 10px;
-      background: #333;
+      border-top: 1px solid #ddd;
+      background: #fff;
     }
-
-    .chat-input input {
+    #message-input {
       flex: 1;
       padding: 10px;
-      border: none;
-      border-radius: 5px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
       outline: none;
     }
-
-    .chat-input button {
+    #send-btn {
       margin-left: 10px;
-      padding: 10px 15px;
+      padding: 10px 16px;
       border: none;
-      border-radius: 5px;
-      background: #FFD700;
-      color: #111;
-      font-weight: bold;
+      background: #4a90e2;
+      color: #fff;
+      border-radius: 50%;
       cursor: pointer;
-      transition: 0.3s;
+      transition: background 0.3s;
     }
-
-    .chat-input button:hover {
-      background: #e6c200;
+    #send-btn:hover {
+      background: #357ABD;
+    }
+    #login-btn, #logout-btn {
+      background: #fff;
+      border: 1px solid #fff;
+      color: #4a90e2;
+      font-weight: bold;
+      border-radius: 20px;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-size: 12px;
     }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div class="chat-header">💬 Customer Service VIP AgencyP</div>
-    <div class="messages" id="messages"></div>
-    <div class="chat-input">
-      <input type="text" id="messageInput" placeholder="Ketik pesan..." />
-      <button onclick="sendMessage()">Kirim</button>
+
+  <div id="chat-container">
+    <div id="header">
+      <div style="display:flex; align-items:center;">
+        <img id="user-photo" src="https://via.placeholder.com/36" alt="user">
+        <span id="user-name">Guest</span>
+      </div>
+      <div>
+        <button id="login-btn">Login</button>
+        <button id="logout-btn" style="display:none;">Logout</button>
+      </div>
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="input-area">
+      <input type="text" id="message-input" placeholder="Tulis pesan..." disabled>
+      <button id="send-btn" disabled>➤</button>
     </div>
   </div>
 
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-  <script>
-    // Config Firebase kamu
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAqDYsJJKz6fdzOj7paVzILo8B54hX6KNo",
       authDomain: "cs-chat-project.firebaseapp.com",
       projectId: "cs-chat-project",
-      storageBucket: "cs-chat-project.firebasestorage.app",
+      storageBucket: "cs-chat-project.appspot.com",
       messagingSenderId: "884357955337",
-      appId: "1:884357955337:web:9366ac70528663eff89dd8",
-      databaseURL: "https://cs-chat-project-default-rtdb.firebaseio.com/"
+      appId: "1:884357955337:web:9366ac70528663eff89dd8"
     };
 
-    // Init Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    // Generate ID User random (kalau admin bisa manual set)
-    const urlParams = new URLSearchParams(window.location.search);
-    const role = urlParams.get("role") === "admin" ? "admin" : "user";
+    const loginBtn = document.getElementById("login-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const userName = document.getElementById("user-name");
+    const userPhoto = document.getElementById("user-photo");
+    const messagesDiv = document.getElementById("messages");
+    const messageInput = document.getElementById("message-input");
+    const sendBtn = document.getElementById("send-btn");
 
-    const messagesRef = db.ref("messages");
+    let currentUser = null;
+
+    // Login Google
+    loginBtn.onclick = async () => {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    };
+
+    // Logout
+    logoutBtn.onclick = () => signOut(auth);
+
+    // Status login
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        userName.textContent = user.displayName;
+        userPhoto.src = user.photoURL;
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        loadMessages();
+      } else {
+        currentUser = null;
+        userName.textContent = "Guest";
+        userPhoto.src = "https://via.placeholder.com/36";
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
+        messageInput.disabled = true;
+        sendBtn.disabled = true;
+        messagesDiv.innerHTML = "";
+      }
+    });
 
     // Kirim pesan
-    function sendMessage() {
-      const input = document.getElementById("messageInput");
-      const text = input.value.trim();
-      if (text) {
-        messagesRef.push({
-          sender: role,
-          text: text,
-          timestamp: Date.now()
-        });
-        input.value = "";
-      }
-    }
+    sendBtn.onclick = async () => {
+      if (!messageInput.value.trim()) return;
+      await addDoc(collection(db, "chats"), {
+        text: messageInput.value,
+        name: currentUser.displayName,
+        photo: currentUser.photoURL,
+        uid: currentUser.uid,
+        timestamp: serverTimestamp()
+      });
+      messageInput.value = "";
+    };
 
-    // Tampilkan pesan realtime
-    messagesRef.on("child_added", snapshot => {
-      const msg = snapshot.val();
-      const msgDiv = document.createElement("div");
-      msgDiv.classList.add("message");
-      msgDiv.classList.add(msg.sender === "admin" ? "admin" : "user");
-      msgDiv.textContent = msg.text;
-      document.getElementById("messages").appendChild(msgDiv);
-      document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
-    });
+    // Ambil pesan realtime
+    function loadMessages() {
+      const q = query(collection(db, "chats"), orderBy("timestamp", "asc"));
+      onSnapshot(q, (snapshot) => {
+        messagesDiv.innerHTML = "";
+        snapshot.forEach((doc) => {
+          const msg = doc.data();
+          const div = document.createElement("div");
+          div.classList.add("message");
+          div.classList.add(msg.uid === currentUser.uid ? "mine" : "other");
+
+          let timeText = "";
+          if (msg.timestamp?.toDate) {
+            const date = msg.timestamp.toDate();
+            const options = { hour: '2-digit', minute: '2-digit' };
+            timeText = date.toLocaleTimeString([], options) + " | " + date.toLocaleDateString();
+          }
+
+          div.innerHTML = `<strong>${msg.name}</strong>${msg.text}<span class="timestamp">${timeText}</span>`;
+          messagesDiv.appendChild(div);
+        });
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+    }
   </script>
 </body>
 </html>
