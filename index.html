@@ -16,7 +16,6 @@
       align-items: stretch;
     }
 
-    /* Container fleksibel */
     #chat-container {
       width: 100%;
       height: 100vh;
@@ -25,7 +24,6 @@
       flex-direction: column;
     }
 
-    /* Desktop mode */
     @media (min-width: 768px) {
       #chat-container {
         max-width: 900px;
@@ -61,7 +59,6 @@
 
     .message-row {
       display: flex;
-      align-items: flex-end;
       margin-bottom: 12px;
       width: 100%;
     }
@@ -94,15 +91,30 @@
       opacity: 0.7;
     }
 
-    /* User sendiri */
-    .mine { background: #4a90e2; color: #fff; border-bottom-right-radius: 0; }
+    /* User sendiri (kanan) */
+    .mine {
+      background: #4a90e2;
+      color: #fff;
+      border-bottom-right-radius: 0;
+      margin-left: auto;
+    }
     .mine .timestamp { color: #e0e0e0; }
 
-    /* Admin */
-    .admin { background: #ffe082; border: 1px solid #e6b800; border-bottom-left-radius: 0; }
+    /* Admin (kiri) */
+    .admin {
+      background: #ffe082;
+      border: 1px solid #e6b800;
+      border-bottom-left-radius: 0;
+      margin-right: auto;
+    }
 
-    /* User lain */
-    .other { background: #fff; border: 1px solid #ddd; border-bottom-left-radius: 0; }
+    /* User lain (kiri) */
+    .other {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-bottom-left-radius: 0;
+      margin-right: auto;
+    }
 
     #input-area {
       display: flex;
@@ -263,6 +275,7 @@
     sendBtn.onclick = async () => {
       if (!messageInput.value.trim() && !fileData) return;
 
+      // kirim file jika ada
       if (fileData) {
         const fileRef = ref(storage, "uploads/" + Date.now() + "-" + fileData.name);
         await uploadBytes(fileRef, fileData);
@@ -280,6 +293,7 @@
         preview.innerHTML = "";
       }
 
+      // kirim teks jika ada
       if (messageInput.value.trim()) {
         await addDoc(collection(db, "chats"), {
           text: messageInput.value,
@@ -319,17 +333,14 @@
 
           if (msg.uid === ADMIN_UID) {
             row.className = "message-row";
-            row.style.justifyContent = "flex-start";
             div.className = "message admin";
             div.innerHTML = `<strong><img src="${msg.photo}">${msg.name} 🛡 Admin</strong>`;
           } else if (currentUser && msg.uid === currentUser.uid) {
             row.className = "message-row";
-            row.style.justifyContent = "flex-end";
             div.className = "message mine";
             div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
           } else {
             row.className = "message-row";
-            row.style.justifyContent = "flex-start";
             div.className = "message other";
             div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
           }
@@ -338,9 +349,10 @@
             div.innerHTML += `<img class="chat-img" src="${msg.url}">`;
           } else if (msg.type === "video") {
             div.innerHTML += `<video class="chat-video" controls src="${msg.url}"></video>`;
-          } else {
+          } else if (msg.text) {
             div.innerHTML += msg.text;
           }
+
           div.innerHTML += `<span class="timestamp">${formatDate(msg.timestamp)}</span>`;
           row.appendChild(div);
           messagesDiv.appendChild(row);
