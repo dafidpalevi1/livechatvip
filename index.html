@@ -48,71 +48,47 @@
     }
     #header span { font-weight: bold; }
 
-    #messages {
+    #chat-box {
       flex: 1;
       padding: 12px;
       overflow-y: auto;
-      background: #f5f7fa;
       display: flex;
       flex-direction: column;
+      background: #f5f7fa;
     }
 
-    .message-row {
+    .row {
       display: flex;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       width: 100%;
     }
+    .row.me { justify-content: flex-end; }
+    .row.other { justify-content: flex-start; }
+
     .message {
       padding: 10px 14px;
-      border-radius: 16px;
-      font-size: 14px;
-      line-height: 1.4;
+      border-radius: 14px;
       max-width: 70%;
       word-wrap: break-word;
+      font-size: 14px;
     }
-    .message strong {
-      display: flex;
-      align-items: center;
-      font-size: 12px;
-      margin-bottom: 4px;
-      gap: 6px;
+    .message.me {
+      background: #007bff;
+      color: white;
+      border-bottom-right-radius: 0;
     }
-    .message strong img {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
+    .message.other {
+      background: #eaeaea;
+      color: black;
+      border-bottom-left-radius: 0;
     }
+
     .timestamp {
       display: block;
       font-size: 11px;
       margin-top: 4px;
-      text-align: right;
       opacity: 0.7;
-    }
-
-    /* Bubble user sendiri (kanan) */
-    .mine-row { justify-content: flex-end; }
-    .mine {
-      background: #4a90e2;
-      color: #fff;
-      border-bottom-right-radius: 0;
-    }
-    .mine .timestamp { color: #e0e0e0; }
-
-    /* Bubble admin (kiri) */
-    .admin-row { justify-content: flex-start; }
-    .admin {
-      background: #00e61f;
-      border: 1px solid #00e61f;
-      border-bottom-left-radius: 0;
-    }
-
-    /* Bubble user lain (kiri) */
-    .other-row { justify-content: flex-start; }
-    .other {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-bottom-left-radius: 0;
+      text-align: right;
     }
 
     #input-area {
@@ -193,7 +169,7 @@
       </div>
     </div>
 
-    <div id="messages"></div>
+    <div id="chat-box"></div>
     <div id="preview"></div>
 
     <div id="input-area">
@@ -225,13 +201,11 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    const ADMIN_UID = "kdA03O0HynelCn7vDQd7J8CAcng2";
-
     const loginBtn = document.getElementById("login-btn");
     const logoutBtn = document.getElementById("logout-btn");
     const userName = document.getElementById("user-name");
     const userPhoto = document.getElementById("user-photo");
-    const messagesDiv = document.getElementById("messages");
+    const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message-input");
     const sendBtn = document.getElementById("send-btn");
     const uploadBtn = document.getElementById("upload-btn");
@@ -256,7 +230,7 @@
         logoutBtn.style.display = "inline-block";
         messageInput.disabled = false;
         sendBtn.disabled = false;
-        uploadBtn.disabled = false; // ✅ sekarang aktif
+        uploadBtn.disabled = false;
         loadMessages();
       } else {
         currentUser = null;
@@ -267,14 +241,13 @@
         messageInput.disabled = true;
         sendBtn.disabled = true;
         uploadBtn.disabled = true;
-        messagesDiv.innerHTML = "";
+        chatBox.innerHTML = "";
       }
     });
 
     sendBtn.onclick = async () => {
       if (!messageInput.value.trim() && !fileData) return;
 
-      // kirim file jika ada
       if (fileData) {
         const fileRef = ref(storage, "uploads/" + Date.now() + "-" + fileData.name);
         await uploadBytes(fileRef, fileData);
@@ -292,7 +265,6 @@
         preview.innerHTML = "";
       }
 
-      // kirim teks jika ada
       if (messageInput.value.trim()) {
         await addDoc(collection(db, "chats"), {
           text: messageInput.value,
@@ -324,39 +296,37 @@
     function loadMessages() {
       const q = query(collection(db, "chats"), orderBy("timestamp", "asc"));
       onSnapshot(q, (snapshot) => {
-        messagesDiv.innerHTML = "";
+        chatBox.innerHTML = "";
         snapshot.forEach((doc) => {
           const msg = doc.data();
-          const row = document.createElement("div");
-          const div = document.createElement("div");
 
-          if (msg.uid === ADMIN_UID) {
-            row.className = "message-row admin-row";
-            div.className = "message admin";
-            div.innerHTML = `<strong><img src="${msg.photo}">${msg.name} 🛡 Admin</strong>`;
-          } else if (currentUser && msg.uid === currentUser.uid) {
-            row.className = "message-row mine-row";
-            div.className = "message mine";
-            div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
+          const row = document.createElement("div");
+          row.classList.add("row");
+
+          const div = document.createElement("div");
+          div.classList.add("message");
+
+          if (msg.uid === currentUser?.uid) {
+            row.classList.add("me");
+            div.classList.add("me");
           } else {
-            row.className = "message-row other-row";
-            div.className = "message other";
-            div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
+            row.classList.add("other");
+            div.classList.add("other");
           }
 
           if (msg.type === "image") {
-            div.innerHTML += `<img class="chat-img" src="${msg.url}">`;
+            div.innerHTML = `<img class="chat-img" src="${msg.url}">`;
           } else if (msg.type === "video") {
-            div.innerHTML += `<video class="chat-video" controls src="${msg.url}"></video>`;
+            div.innerHTML = `<video class="chat-video" controls src="${msg.url}"></video>`;
           } else if (msg.text) {
-            div.innerHTML += msg.text;
+            div.textContent = msg.text;
           }
 
           div.innerHTML += `<span class="timestamp">${formatDate(msg.timestamp)}</span>`;
           row.appendChild(div);
-          messagesDiv.appendChild(row);
+          chatBox.appendChild(row);
         });
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        chatBox.scrollTop = chatBox.scrollHeight;
       });
     }
 
