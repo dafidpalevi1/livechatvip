@@ -90,6 +90,7 @@
       opacity: 0.7;
     }
 
+    /* Bubble user sendiri (kanan) */
     .mine-row { justify-content: flex-end; }
     .mine {
       background: #4a90e2;
@@ -98,14 +99,15 @@
     }
     .mine .timestamp { color: #e0e0e0; }
 
+    /* Bubble admin (kiri) */
     .admin-row { justify-content: flex-start; }
     .admin {
-      background: #00e61f;
-      border: 1px solid #00e61f;
+      background: #ffe082;
+      border: 1px solid #e6b800;
       border-bottom-left-radius: 0;
-      color: #fff;
     }
 
+    /* Bubble user lain (kiri) */
     .other-row { justify-content: flex-start; }
     .other {
       background: #fff;
@@ -163,6 +165,7 @@
       margin-top: 6px;
     }
 
+    /* Preview upload */
     #preview {
       display: none;
       padding: 8px;
@@ -177,6 +180,7 @@
   </style>
 </head>
 <body>
+
   <div id="chat-container">
     <div id="header">
       <div style="display:flex; align-items:center;">
@@ -200,6 +204,7 @@
     </div>
   </div>
 
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
@@ -220,7 +225,7 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    const ADMIN_UID = "kdA03O0HynelCn7vDQd7J8CAcng2";
+    const ADMIN_UID = "3iwGbpWIVoOAgO3g8FKg6sOSQ8T2";
 
     const loginBtn = document.getElementById("login-btn");
     const logoutBtn = document.getElementById("logout-btn");
@@ -251,7 +256,7 @@
         logoutBtn.style.display = "inline-block";
         messageInput.disabled = false;
         sendBtn.disabled = false;
-        uploadBtn.disabled = false;
+        uploadBtn.disabled = false; // ✅ sekarang aktif
         loadMessages();
       } else {
         currentUser = null;
@@ -269,6 +274,7 @@
     sendBtn.onclick = async () => {
       if (!messageInput.value.trim() && !fileData) return;
 
+      // kirim file jika ada
       if (fileData) {
         const fileRef = ref(storage, "uploads/" + Date.now() + "-" + fileData.name);
         await uploadBytes(fileRef, fileData);
@@ -286,6 +292,7 @@
         preview.innerHTML = "";
       }
 
+      // kirim teks jika ada
       if (messageInput.value.trim()) {
         await addDoc(collection(db, "chats"), {
           text: messageInput.value,
@@ -337,13 +344,12 @@
             div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
           }
 
-          // tambahkan isi pesan tanpa menimpa header
           if (msg.type === "image") {
             div.innerHTML += `<img class="chat-img" src="${msg.url}">`;
           } else if (msg.type === "video") {
             div.innerHTML += `<video class="chat-video" controls src="${msg.url}"></video>`;
           } else if (msg.text) {
-            div.innerHTML += `<div>${msg.text}</div>`;
+            div.innerHTML += msg.text;
           }
 
           div.innerHTML += `<span class="timestamp">${formatDate(msg.timestamp)}</span>`;
