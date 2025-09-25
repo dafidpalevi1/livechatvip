@@ -14,6 +14,7 @@
       align-items: center;
       height: 100vh;
     }
+
     #chat-container {
       width: 100%;
       max-width: 480px;
@@ -25,6 +26,7 @@
       flex-direction: column;
       overflow: hidden;
     }
+
     #header {
       background: #4a90e2;
       color: #fff;
@@ -33,12 +35,18 @@
       align-items: center;
       justify-content: space-between;
     }
+
     #header img {
       width: 36px;
       height: 36px;
       border-radius: 50%;
       margin-right: 10px;
     }
+
+    #header span {
+      font-weight: bold;
+    }
+
     #messages {
       flex: 1;
       padding: 12px;
@@ -47,50 +55,73 @@
       display: flex;
       flex-direction: column;
     }
-    .message {
-      margin: 6px 0;
-      padding: 10px 14px;
-      border-radius: 16px;
+
+    /* bubble chat */
+    .chat-bubble {
+      margin: 8px 0;
       max-width: 75%;
       word-wrap: break-word;
       font-size: 14px;
-      position: relative;
-      display: inline-block;
+      padding: 8px;
+      border-radius: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
     }
-    .message strong {
-      display: block;
-      font-size: 12px;
-      margin-bottom: 4px;
-      color: #333;
-    }
-    .message.other {
-      background: #fff;
-      border: 1px solid #ddd;
-      align-self: flex-start;
-      border-bottom-left-radius: 4px;
-    }
-    .message.mine {
+
+    .chat-bubble.mine {
+      align-self: flex-end;
+      flex-direction: row-reverse;
       background: #4a90e2;
       color: #fff;
-      align-self: flex-end;
       border-bottom-right-radius: 4px;
     }
-    .message.admin {
-      background: #ffe082;
-      border: 1px solid #e6b800;
+
+    .chat-bubble.other {
       align-self: flex-start;
+      background: #fff;
+      border: 1px solid #ddd;
       border-bottom-left-radius: 4px;
     }
+
+    .chat-bubble.admin {
+      align-self: flex-start;
+      background: #ffe082;
+      border: 1px solid #e6b800;
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-meta {
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+    }
+
+    .chat-meta strong {
+      font-size: 13px;
+    }
+
     .timestamp {
-      display: block;
-      font-size: 11px;
-      margin-top: 4px;
+      font-size: 10px;
       color: #666;
+      margin-top: 2px;
       text-align: right;
     }
-    .message.mine .timestamp {
-      color: #e0e0e0;
+
+    .chat-bubble img.avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
     }
+
+    .chat-content img,
+    .chat-content video {
+      max-width: 200px;
+      border-radius: 8px;
+      display: block;
+    }
+
+    /* input */
     #input-area {
       display: flex;
       padding: 8px;
@@ -99,6 +130,7 @@
       align-items: center;
       gap: 8px;
     }
+
     #message-input {
       flex: 1;
       padding: 10px;
@@ -106,6 +138,7 @@
       border: 1px solid #ccc;
       outline: none;
     }
+
     #send-btn, #upload-btn {
       border: none;
       background: #4a90e2;
@@ -114,6 +147,12 @@
       border-radius: 50%;
       cursor: pointer;
     }
+
+    #send-btn:hover, #upload-btn:hover {
+      background: #357ABD;
+    }
+
+    /* preview */
     #preview {
       padding: 8px;
       border-top: 1px solid #ddd;
@@ -121,6 +160,7 @@
       display: none;
       text-align: center;
     }
+
     #preview img, #preview video {
       max-width: 100%;
       max-height: 200px;
@@ -142,7 +182,6 @@
     </div>
 
     <div id="messages"></div>
-
     <div id="preview"></div>
 
     <div id="input-area">
@@ -153,6 +192,7 @@
     </div>
   </div>
 
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
@@ -191,6 +231,7 @@
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     };
+
     logoutBtn.onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, (user) => {
@@ -220,30 +261,29 @@
     sendBtn.onclick = async () => {
       if (!messageInput.value.trim() && !selectedFile) return;
 
+      let msgData = {
+        uid: currentUser.uid,
+        name: currentUser.displayName,
+        photo: currentUser.photoURL,
+        timestamp: serverTimestamp()
+      };
+
       if (selectedFile) {
-        const fileURL = URL.createObjectURL(selectedFile);
-        await addDoc(collection(db, "chats"), {
-          file: fileURL,
-          fileType: selectedFile.type,
-          name: currentUser.displayName,
-          uid: currentUser.uid,
-          timestamp: serverTimestamp()
-        });
+        msgData.file = URL.createObjectURL(selectedFile);
+        msgData.fileType = selectedFile.type;
         selectedFile = null;
         previewDiv.style.display = "none";
         previewDiv.innerHTML = "";
       } else {
-        await addDoc(collection(db, "chats"), {
-          text: messageInput.value,
-          name: currentUser.displayName,
-          uid: currentUser.uid,
-          timestamp: serverTimestamp()
-        });
+        msgData.text = messageInput.value;
         messageInput.value = "";
       }
+
+      await addDoc(collection(db, "chats"), msgData);
     };
 
     uploadBtn.onclick = () => fileInput.click();
+
     fileInput.onchange = () => {
       if (fileInput.files[0]) {
         selectedFile = fileInput.files[0];
@@ -264,28 +304,39 @@
         snapshot.forEach((doc) => {
           const msg = doc.data();
           const div = document.createElement("div");
+          div.classList.add("chat-bubble");
 
           if (msg.uid === ADMIN_UID) {
-            div.classList.add("message", "admin");
-            div.innerHTML = `<strong>${msg.name} 🛡 Admin</strong>`;
+            div.classList.add("admin");
           } else if (currentUser && msg.uid === currentUser.uid) {
-            div.classList.add("message", "mine");
-            div.innerHTML = `<strong>${msg.name}</strong>`;
+            div.classList.add("mine");
           } else {
-            div.classList.add("message", "other");
-            div.innerHTML = `<strong>${msg.name}</strong>`;
+            div.classList.add("other");
           }
 
+          let content = `
+            <img src="${msg.photo || 'images/vip.png'}" class="avatar">
+            <div class="chat-meta">
+              <strong>${msg.name || 'Anon'} ${msg.uid === ADMIN_UID ? '(Admin)' : ''}</strong>
+              <div class="chat-content">
+          `;
+
           if (msg.text) {
-            div.innerHTML += `${msg.text}<span class="timestamp">${formatDate(msg.timestamp)}</span>`;
+            content += `<p>${msg.text}</p>`;
           } else if (msg.file) {
             if (msg.fileType.startsWith("image/")) {
-              div.innerHTML += `<img src="${msg.file}" style="max-width:100%;border-radius:8px;"><span class="timestamp">${formatDate(msg.timestamp)}</span>`;
+              content += `<img src="${msg.file}">`;
             } else if (msg.fileType.startsWith("video/")) {
-              div.innerHTML += `<video src="${msg.file}" controls style="max-width:100%;border-radius:8px;"></video><span class="timestamp">${formatDate(msg.timestamp)}</span>`;
+              content += `<video src="${msg.file}" controls></video>`;
             }
           }
 
+          content += `
+              </div>
+              <span class="timestamp">${formatDate(msg.timestamp)}</span>
+            </div>
+          `;
+          div.innerHTML = content;
           messagesDiv.appendChild(div);
         });
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
