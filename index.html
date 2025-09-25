@@ -60,7 +60,7 @@
     .message-row {
       display: flex;
       margin-bottom: 12px;
-      padding: 0 10px; /* supaya ada jarak dari pinggir */
+      padding: 0 10px;
     }
     .message {
       padding: 10px 14px;
@@ -83,10 +83,12 @@
       border-radius: 50%;
     }
     .timestamp {
-      display: block;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
       font-size: 11px;
       margin-top: 4px;
-      text-align: right;
+      gap: 4px;
       opacity: 0.7;
     }
 
@@ -96,6 +98,7 @@
       background: #4a90e2;
       color: #fff;
       border-bottom-right-radius: 0;
+      text-align: left;
     }
     .mine .timestamp { color: #e0e0e0; }
 
@@ -225,11 +228,7 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // ✅ daftar UID admin
-    const ADMIN_UIDS = [
-      "3iwGbpWIVoOAgO3g8FKg6sOSQ8T2",
-      "kdA03O0HynelCn7vDQd7J8CAcng2"
-    ];
+    const ADMIN_UIDS = ["3iwGbpWIVoOAgO3g8FKg6sOSQ8T2","kdA03O0HynelCn7vDQd7J8CAcng2"];
 
     const loginBtn = document.getElementById("login-btn");
     const logoutBtn = document.getElementById("logout-btn");
@@ -332,6 +331,7 @@
           const row = document.createElement("div");
           const div = document.createElement("div");
 
+          // cek admin / mine / other
           if (ADMIN_UIDS.includes(msg.uid)) {
             row.className = "message-row admin-row";
             div.className = "message admin";
@@ -346,6 +346,7 @@
             div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
           }
 
+          // isi pesan
           if (msg.type === "image") {
             div.innerHTML += `<img class="chat-img" src="${msg.url}">`;
           } else if (msg.type === "video") {
@@ -354,7 +355,13 @@
             div.innerHTML += msg.text;
           }
 
-          div.innerHTML += `<span class="timestamp">${formatDate(msg.timestamp)}</span>`;
+          // timestamp + centang biru jika pesan sendiri
+          let extra = "";
+          if (currentUser && msg.uid === currentUser.uid) {
+            extra = "✔✔"; // tanda centang biru
+          }
+          div.innerHTML += `<span class="timestamp">${formatDate(msg.timestamp)} ${extra}</span>`;
+
           row.appendChild(div);
           messagesDiv.appendChild(row);
         });
@@ -365,7 +372,7 @@
     function formatDate(timestamp) {
       if (!timestamp?.toDate) return "";
       const date = timestamp.toDate();
-      return date.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) + " | " + date.toLocaleDateString();
+      return date.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
     }
   </script>
 </body>
