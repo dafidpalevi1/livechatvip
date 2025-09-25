@@ -225,7 +225,11 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    const ADMIN_UID = "3iwGbpWIVoOAgO3g8FKg6sOSQ8T2";
+    // ✅ daftar UID admin
+    const ADMIN_UIDS = [
+      "3iwGbpWIVoOAgO3g8FKg6sOSQ8T2",
+      "kdA03O0HynelCn7vDQd7J8CAcng2"
+    ];
 
     const loginBtn = document.getElementById("login-btn");
     const logoutBtn = document.getElementById("logout-btn");
@@ -256,7 +260,7 @@
         logoutBtn.style.display = "inline-block";
         messageInput.disabled = false;
         sendBtn.disabled = false;
-        uploadBtn.disabled = false; // ✅ sekarang aktif
+        uploadBtn.disabled = false;
         loadMessages();
       } else {
         currentUser = null;
@@ -274,7 +278,6 @@
     sendBtn.onclick = async () => {
       if (!messageInput.value.trim() && !fileData) return;
 
-      // kirim file jika ada
       if (fileData) {
         const fileRef = ref(storage, "uploads/" + Date.now() + "-" + fileData.name);
         await uploadBytes(fileRef, fileData);
@@ -292,7 +295,6 @@
         preview.innerHTML = "";
       }
 
-      // kirim teks jika ada
       if (messageInput.value.trim()) {
         await addDoc(collection(db, "chats"), {
           text: messageInput.value,
@@ -330,7 +332,7 @@
           const row = document.createElement("div");
           const div = document.createElement("div");
 
-          if (msg.uid === ADMIN_UID) {
+          if (ADMIN_UIDS.includes(msg.uid)) {
             row.className = "message-row admin-row";
             div.className = "message admin";
             div.innerHTML = `<strong><img src="${msg.photo}">${msg.name} 🛡 Admin</strong>`;
