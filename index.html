@@ -5,26 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Live Chat Firebase</title>
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: "Poppins", sans-serif;
       background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
       margin: 0;
+      height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
+      align-items: stretch;
     }
 
     #chat-container {
       width: 100%;
-      max-width: 480px;
-      height: 90vh;
+      height: 100vh;
       background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+    }
+
+    @media (min-width: 768px) {
+      #chat-container {
+        max-width: 900px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      }
     }
 
     #header {
@@ -35,17 +40,13 @@
       align-items: center;
       justify-content: space-between;
     }
-
     #header img {
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       margin-right: 10px;
     }
-
-    #header span {
-      font-weight: bold;
-    }
+    #header span { font-weight: bold; }
 
     #messages {
       flex: 1;
@@ -56,72 +57,62 @@
       flex-direction: column;
     }
 
-    /* bubble chat */
-    .chat-bubble {
-      margin: 8px 0;
-      max-width: 75%;
-      word-wrap: break-word;
+    .message-row {
+      display: flex;
+      margin-bottom: 12px;
+      width: 100%;
+    }
+    .message {
+      padding: 10px 14px;
+      border-radius: 16px;
       font-size: 14px;
-      padding: 8px;
-      border-radius: 12px;
+      line-height: 1.4;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+    .message strong {
       display: flex;
-      gap: 8px;
-      align-items: flex-end;
-    }
-
-    .chat-bubble.mine {
-      align-self: flex-end;
-      flex-direction: row-reverse;
-      background: #4a90e2;
-      color: #fff;
-      border-bottom-right-radius: 4px;
-    }
-
-    .chat-bubble.other {
-      align-self: flex-start;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-bottom-left-radius: 4px;
-    }
-
-    .chat-bubble.admin {
-      align-self: flex-start;
-      background: #ffe082;
-      border: 1px solid #e6b800;
-      border-bottom-left-radius: 4px;
-    }
-
-    .chat-meta {
-      display: flex;
-      flex-direction: column;
+      align-items: center;
       font-size: 12px;
+      margin-bottom: 4px;
+      gap: 6px;
     }
-
-    .chat-meta strong {
-      font-size: 13px;
-    }
-
-    .timestamp {
-      font-size: 10px;
-      color: #666;
-      margin-top: 2px;
-      text-align: right;
-    }
-
-    .chat-bubble img.avatar {
-      width: 28px;
-      height: 28px;
+    .message strong img {
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
     }
-
-    .chat-content img,
-    .chat-content video {
-      max-width: 200px;
-      border-radius: 8px;
+    .timestamp {
       display: block;
+      font-size: 11px;
+      margin-top: 4px;
+      text-align: right;
+      opacity: 0.7;
     }
 
-    /* input */
+    .mine-row { justify-content: flex-end; }
+    .mine {
+      background: #4a90e2;
+      color: #fff;
+      border-bottom-right-radius: 0;
+    }
+    .mine .timestamp { color: #e0e0e0; }
+
+    .admin-row { justify-content: flex-start; }
+    .admin {
+      background: #00e61f;
+      border: 1px solid #00e61f;
+      border-bottom-left-radius: 0;
+      color: #fff;
+    }
+
+    .other-row { justify-content: flex-start; }
+    .other {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-bottom-left-radius: 0;
+    }
+
     #input-area {
       display: flex;
       padding: 8px;
@@ -130,7 +121,6 @@
       align-items: center;
       gap: 8px;
     }
-
     #message-input {
       flex: 1;
       padding: 10px;
@@ -138,32 +128,50 @@
       border: 1px solid #ccc;
       outline: none;
     }
-
     #send-btn, #upload-btn {
+      padding: 10px;
       border: none;
       background: #4a90e2;
       color: #fff;
-      padding: 10px;
       border-radius: 50%;
       cursor: pointer;
+      flex-shrink: 0;
+    }
+    #send-btn:hover, #upload-btn:hover { background: #357ABD; }
+
+    #login-btn, #logout-btn {
+      background: #fff;
+      border: none;
+      color: #4a90e2;
+      font-weight: bold;
+      border-radius: 20px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
     }
 
-    #send-btn:hover, #upload-btn:hover {
-      background: #357ABD;
+    img.chat-img {
+      max-width: 200px;
+      border-radius: 10px;
+      display: block;
+      margin-top: 6px;
+    }
+    video.chat-video {
+      max-width: 240px;
+      border-radius: 10px;
+      display: block;
+      margin-top: 6px;
     }
 
-    /* preview */
     #preview {
-      padding: 8px;
-      border-top: 1px solid #ddd;
-      background: #fafafa;
       display: none;
+      padding: 8px;
       text-align: center;
+      background: #fafafa;
+      border-top: 1px solid #eee;
     }
-
     #preview img, #preview video {
-      max-width: 100%;
-      max-height: 200px;
+      max-height: 150px;
       border-radius: 8px;
     }
   </style>
@@ -185,18 +193,18 @@
     <div id="preview"></div>
 
     <div id="input-area">
-      <input type="file" id="file-input" accept="image/*,video/*" style="display:none">
-      <button id="upload-btn">📎</button>
+      <input type="file" id="file-input" style="display:none;" accept="image/*,video/*">
+      <button id="upload-btn" title="Upload">📎</button>
       <input type="text" id="message-input" placeholder="Tulis pesan..." disabled>
       <button id="send-btn" disabled>➤</button>
     </div>
   </div>
 
-  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAqDYsJJKz6fdzOj7paVzILo8B54hX6KNo",
@@ -210,8 +218,9 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
-    const ADMIN_UID = "3iwGbpWIVoOAgO3g8FKg6sOSQ8T2";
+    const ADMIN_UID = "kdA03O0HynelCn7vDQd7J8CAcng2";
 
     const loginBtn = document.getElementById("login-btn");
     const logoutBtn = document.getElementById("logout-btn");
@@ -222,16 +231,15 @@
     const sendBtn = document.getElementById("send-btn");
     const uploadBtn = document.getElementById("upload-btn");
     const fileInput = document.getElementById("file-input");
-    const previewDiv = document.getElementById("preview");
+    const preview = document.getElementById("preview");
 
     let currentUser = null;
-    let selectedFile = null;
+    let fileData = null;
 
     loginBtn.onclick = async () => {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     };
-
     logoutBtn.onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, (user) => {
@@ -259,41 +267,50 @@
     });
 
     sendBtn.onclick = async () => {
-      if (!messageInput.value.trim() && !selectedFile) return;
+      if (!messageInput.value.trim() && !fileData) return;
 
-      let msgData = {
-        uid: currentUser.uid,
-        name: currentUser.displayName,
-        photo: currentUser.photoURL,
-        timestamp: serverTimestamp()
-      };
-
-      if (selectedFile) {
-        msgData.file = URL.createObjectURL(selectedFile);
-        msgData.fileType = selectedFile.type;
-        selectedFile = null;
-        previewDiv.style.display = "none";
-        previewDiv.innerHTML = "";
-      } else {
-        msgData.text = messageInput.value;
-        messageInput.value = "";
+      if (fileData) {
+        const fileRef = ref(storage, "uploads/" + Date.now() + "-" + fileData.name);
+        await uploadBytes(fileRef, fileData);
+        const url = await getDownloadURL(fileRef);
+        const type = fileData.type.startsWith("image") ? "image" : "video";
+        await addDoc(collection(db, "chats"), {
+          url, type,
+          name: currentUser.displayName,
+          photo: currentUser.photoURL,
+          uid: currentUser.uid,
+          timestamp: serverTimestamp()
+        });
+        fileData = null;
+        preview.style.display = "none";
+        preview.innerHTML = "";
       }
 
-      await addDoc(collection(db, "chats"), msgData);
+      if (messageInput.value.trim()) {
+        await addDoc(collection(db, "chats"), {
+          text: messageInput.value,
+          type: "text",
+          name: currentUser.displayName,
+          photo: currentUser.photoURL,
+          uid: currentUser.uid,
+          timestamp: serverTimestamp()
+        });
+        messageInput.value = "";
+      }
     };
 
     uploadBtn.onclick = () => fileInput.click();
-
-    fileInput.onchange = () => {
-      if (fileInput.files[0]) {
-        selectedFile = fileInput.files[0];
-        previewDiv.innerHTML = "";
-        if (selectedFile.type.startsWith("image/")) {
-          previewDiv.innerHTML = `<img src="${URL.createObjectURL(selectedFile)}">`;
-        } else if (selectedFile.type.startsWith("video/")) {
-          previewDiv.innerHTML = `<video src="${URL.createObjectURL(selectedFile)}" controls></video>`;
-        }
-        previewDiv.style.display = "block";
+    fileInput.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      fileData = file;
+      preview.style.display = "block";
+      preview.innerHTML = "";
+      const url = URL.createObjectURL(file);
+      if (file.type.startsWith("image")) {
+        preview.innerHTML = `<img src="${url}">`;
+      } else if (file.type.startsWith("video")) {
+        preview.innerHTML = `<video src="${url}" controls></video>`;
       }
     };
 
@@ -303,41 +320,35 @@
         messagesDiv.innerHTML = "";
         snapshot.forEach((doc) => {
           const msg = doc.data();
+          const row = document.createElement("div");
           const div = document.createElement("div");
-          div.classList.add("chat-bubble");
 
           if (msg.uid === ADMIN_UID) {
-            div.classList.add("admin");
+            row.className = "message-row admin-row";
+            div.className = "message admin";
+            div.innerHTML = `<strong><img src="${msg.photo}">${msg.name} 🛡 Admin</strong>`;
           } else if (currentUser && msg.uid === currentUser.uid) {
-            div.classList.add("mine");
+            row.className = "message-row mine-row";
+            div.className = "message mine";
+            div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
           } else {
-            div.classList.add("other");
+            row.className = "message-row other-row";
+            div.className = "message other";
+            div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
           }
 
-          let content = `
-            <img src="${msg.photo || 'images/vip.png'}" class="avatar">
-            <div class="chat-meta">
-              <strong>${msg.name || 'Anon'} ${msg.uid === ADMIN_UID ? '(Admin)' : ''}</strong>
-              <div class="chat-content">
-          `;
-
-          if (msg.text) {
-            content += `<p>${msg.text}</p>`;
-          } else if (msg.file) {
-            if (msg.fileType.startsWith("image/")) {
-              content += `<img src="${msg.file}">`;
-            } else if (msg.fileType.startsWith("video/")) {
-              content += `<video src="${msg.file}" controls></video>`;
-            }
+          // tambahkan isi pesan tanpa menimpa header
+          if (msg.type === "image") {
+            div.innerHTML += `<img class="chat-img" src="${msg.url}">`;
+          } else if (msg.type === "video") {
+            div.innerHTML += `<video class="chat-video" controls src="${msg.url}"></video>`;
+          } else if (msg.text) {
+            div.innerHTML += `<div>${msg.text}</div>`;
           }
 
-          content += `
-              </div>
-              <span class="timestamp">${formatDate(msg.timestamp)}</span>
-            </div>
-          `;
-          div.innerHTML = content;
-          messagesDiv.appendChild(div);
+          div.innerHTML += `<span class="timestamp">${formatDate(msg.timestamp)}</span>`;
+          row.appendChild(div);
+          messagesDiv.appendChild(row);
         });
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
       });
@@ -346,8 +357,7 @@
     function formatDate(timestamp) {
       if (!timestamp?.toDate) return "";
       const date = timestamp.toDate();
-      const options = { hour: '2-digit', minute: '2-digit' };
-      return date.toLocaleTimeString([], options);
+      return date.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) + " | " + date.toLocaleDateString();
     }
   </script>
 </body>
