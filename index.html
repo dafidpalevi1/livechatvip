@@ -63,7 +63,7 @@
       padding: 0 6px;
     }
 
-    /* Bubble sendiri (kanan) */
+    /* Bubble user sendiri (kanan) */
     .mine-row { justify-content: flex-end; }
     .mine {
       background: #dcf8c6;
@@ -76,9 +76,9 @@
       position: relative;
     }
 
-    /* Bubble orang lain (kiri) */
-    .other-row { justify-content: flex-start; }
-    .other {
+    /* Bubble orang lain & admin (kiri) */
+    .other-row, .admin-row { justify-content: flex-start; }
+    .other, .admin {
       background: #fff;
       border-radius: 8px 8px 8px 0;
       padding: 8px 12px;
@@ -89,24 +89,20 @@
       border: 1px solid #ddd;
       position: relative;
     }
-
-    /* Bubble admin */
-    .admin-row { justify-content: flex-start; }
-    .admin {
-      background: #ffeeba;
-      border-radius: 8px 8px 8px 0;
-      padding: 8px 12px;
-      max-width: 70%;
-      font-size: 14px;
-      border: 1px solid #e6b800;
-      position: relative;
-    }
+    .admin { background: #dcf8c6; } /* admin juga hijau WhatsApp */
 
     .message strong {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-size: 12px;
       margin-bottom: 4px;
       color: #555;
+    }
+    .message strong img {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
     }
 
     .timestamp {
@@ -337,17 +333,20 @@
           const row = document.createElement("div");
           const div = document.createElement("div");
 
-          if (ADMIN_UIDS.includes(msg.uid)) {
-            row.className = "message-row admin-row";
-            div.className = "message admin";
-            div.innerHTML = `<strong>${msg.name} 🛡 Admin</strong>`;
-          } else if (currentUser && msg.uid === currentUser.uid) {
+          // tentukan row dan bubble
+          if (currentUser && msg.uid === currentUser.uid) {
             row.className = "message-row mine-row";
             div.className = "message mine";
+          } else if (ADMIN_UIDS.includes(msg.uid)) {
+            row.className = "message-row admin-row";
+            div.className = "message admin";
           } else {
             row.className = "message-row other-row";
             div.className = "message other";
           }
+
+          // nama + foto selalu muncul
+          div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
 
           if (msg.type === "image") {
             div.innerHTML += `<img class="chat-img" src="${msg.url}">`;
