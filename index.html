@@ -62,7 +62,6 @@
       margin-bottom: 12px;
       width: 100%;
     }
-
     .message {
       padding: 10px 14px;
       border-radius: 16px;
@@ -91,29 +90,29 @@
       opacity: 0.7;
     }
 
-    /* User sendiri (kanan) */
+    /* Bubble user sendiri (kanan) */
+    .mine-row { justify-content: flex-end; }
     .mine {
       background: #4a90e2;
       color: #fff;
       border-bottom-right-radius: 0;
-      margin-left: auto;
     }
     .mine .timestamp { color: #e0e0e0; }
 
-    /* Admin (kiri) */
+    /* Bubble admin (kiri) */
+    .admin-row { justify-content: flex-start; }
     .admin {
       background: #ffe082;
       border: 1px solid #e6b800;
       border-bottom-left-radius: 0;
-      margin-right: auto;
     }
 
-    /* User lain (kiri) */
+    /* Bubble user lain (kiri) */
+    .other-row { justify-content: flex-start; }
     .other {
       background: #fff;
       border: 1px solid #ddd;
       border-bottom-left-radius: 0;
-      margin-right: auto;
     }
 
     #input-area {
@@ -122,6 +121,7 @@
       border-top: 1px solid #ddd;
       background: #fff;
       align-items: center;
+      gap: 8px;
     }
     #message-input {
       flex: 1;
@@ -131,13 +131,13 @@
       outline: none;
     }
     #send-btn, #upload-btn {
-      margin-left: 8px;
       padding: 10px;
       border: none;
       background: #4a90e2;
       color: #fff;
       border-radius: 50%;
       cursor: pointer;
+      flex-shrink: 0;
     }
     #send-btn:hover, #upload-btn:hover { background: #357ABD; }
 
@@ -194,7 +194,6 @@
     </div>
 
     <div id="messages"></div>
-
     <div id="preview"></div>
 
     <div id="input-area">
@@ -257,7 +256,7 @@
         logoutBtn.style.display = "inline-block";
         messageInput.disabled = false;
         sendBtn.disabled = false;
-        uploadBtn.disabled = false;
+        uploadBtn.disabled = false; // ✅ sekarang aktif
         loadMessages();
       } else {
         currentUser = null;
@@ -332,15 +331,15 @@
           const div = document.createElement("div");
 
           if (msg.uid === ADMIN_UID) {
-            row.className = "message-row";
+            row.className = "message-row admin-row";
             div.className = "message admin";
             div.innerHTML = `<strong><img src="${msg.photo}">${msg.name} 🛡 Admin</strong>`;
           } else if (currentUser && msg.uid === currentUser.uid) {
-            row.className = "message-row";
+            row.className = "message-row mine-row";
             div.className = "message mine";
             div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
           } else {
-            row.className = "message-row";
+            row.className = "message-row other-row";
             div.className = "message other";
             div.innerHTML = `<strong><img src="${msg.photo}">${msg.name}</strong>`;
           }
